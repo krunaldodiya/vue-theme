@@ -1,24 +1,65 @@
 import Vue from "vue";
 import Router from "vue-router";
-import Home from "./views/Home.vue";
 
 Vue.use(Router);
 
-export default new Router({
+const router = new Router({
+  mode: "history",
   routes: [
     {
       path: "/",
       name: "home",
-      component: Home
+      component: () => import("./views/Home.vue"),
+      meta: {
+        gateway: "auth"
+      }
+    },
+    {
+      path: "/project/:id",
+      name: "project-by-id",
+      component: () => import("./views/Project.vue"),
+      meta: {
+        gateway: "auth"
+      }
+    },
+    {
+      path: "/login",
+      name: "login",
+      component: () => import("./views/Login.vue"),
+      meta: {
+        gateway: "guest"
+      }
+    },
+    {
+      path: "/register",
+      name: "register",
+      component: () => import("./views/Register.vue"),
+      meta: {
+        gateway: "guest"
+      }
     },
     {
       path: "/about",
       name: "about",
-      // route level code-splitting
-      // this generates a separate chunk (about.[hash].js) for this route
-      // which is lazy-loaded when the route is visited.
-      component: () =>
-        import(/* webpackChunkName: "about" */ "./views/About.vue")
+      component: () => import("./views/About.vue"),
+      meta: {
+        gateway: "any"
+      }
     }
   ]
 });
+
+router.beforeEach(async (to, _, next) => {
+  const gateway = to.meta.gateway;
+  const authUser = await localStorage.getItem("authUserUID");
+
+  if (gateway == "auth" && authUser == null) {
+    next("/login");
+  } else if (gateway == "guest" && authUser != null) {
+    next("/");
+  } else {
+    next();
+  }
+});
+
+export default router;
