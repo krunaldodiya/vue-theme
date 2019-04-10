@@ -62,21 +62,19 @@ export default {
         const projectsRef = db.collection("projects");
         const projectData = await projectsRef.add({
           name,
-          userID: auth.currentUser.uid,
-          default_theme_id: null
+          userID: auth.currentUser.uid
+        });
+
+        const screensRef = db.collection(`projects/${projectData.id}/screens`);
+        const screenData = screensRef.add({ name: "homepage" });
+
+        const themesRef = db.collection(`projects/${projectData.id}/themes`);
+        const themeData = themesRef.add({
+          name: "My Theme",
+          default: true
         });
 
         this.loading = false;
-
-        const screensRef = db.collection(`projects/${projectData.id}/screens`);
-        const screenData = await screensRef.add({ name: "homepage" });
-
-        const themesRef = db.collection(`projects/${projectData.id}/themes`);
-        const themeData = await themesRef.add({ name: "My Theme" });
-
-        await projectsRef
-          .doc(projectData.id)
-          .update({ default_theme_id: themeData.id });
       } catch (error) {
         this.loading = false;
       }
